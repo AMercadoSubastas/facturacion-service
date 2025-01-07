@@ -62,14 +62,14 @@ class FacturaService
             $totiva21 = $cerosdb;
             $totNeto105 = $cerosdb;
             $totNeto21 = $cerosdb;
-            foreach ($data['comprobante']['renglones'] as $renglon) {
+            foreach ($data['comprobanteModel']['renglones'] as $renglon) {
 
                 $cargarDetFac = [
                     'tcomp' => $tcomp,
                     'serie' => $serie,
                     'ncomp' => $ncomp,
-                    'nreng' => count($data['comprobante']['renglones']),
-                    'codrem' => $data['comprobante']['codrem'],
+                    'nreng' => count($data['comprobanteModel']['renglones']),
+                    'codrem' => $data['comprobanteModel']['codrem'],
                     'codlote' => $renglon['codlote'],
                     'descrip' => $renglon['desc'],
                     'neto' => $renglon['impunit'],
@@ -91,7 +91,7 @@ class FacturaService
 
             // INSERTAR CABFAC
             $entidad = new EntidadService;
-            $codcli = $entidad->codnum($data['comprobante']['cuit']);
+            $codcli = $entidad->codnum($data['comprobanteModel']['cuit']);
 
             $impUsoPlat = $cerosdb;
 
@@ -99,27 +99,27 @@ class FacturaService
                 'tcomp' => $tcomp,
                 'serie' => $serie,
                 'ncomp' => $ncomp,
-                'fecval' => $data['comprobante']['fecha'],
-                'fecdoc' => $data['comprobante']['fecha'],
-                'fecreg' => $data['comprobante']['fecha'],
+                'fecval' => $data['comprobanteModel']['fecha'],
+                'fecdoc' => $data['comprobanteModel']['fecha'],
+                'fecreg' => $data['comprobanteModel']['fecha'],
                 'cliente' => $codcli,
-                'fecvenc' => $data['comprobante']['fecha'],
-                'codrem' => $data['comprobante']['codrem'],
+                'fecvenc' => $data['comprobanteModel']['fecha'],
+                'codrem' => $data['comprobanteModel']['codrem'],
                 'estado' => EstadosFacturaEnum::PENDIENTE->value,
                 'emitido' => $cerosdb,
                 'moneda' => $cerosdb,
-                'totneto' => $data['comprobante']['impneto'],
-                'totbruto' => $data['comprobante']['imptotal'],
+                'totneto' => $data['comprobanteModel']['impneto'],
+                'totbruto' => $data['comprobanteModel']['imptotal'],
                 'totiva105' => $totiva105,
                 'totiva21' => $totiva21 + $impUsoPlat,
                 'totimp' => $gsadmin,
                 'totcomis' => $comision,
                 'totneto105' => $totNeto105,
                 'totneto21' => $totNeto21,
-                'nrengs' => count($data['comprobante']['renglones']),
+                'nrengs' => count($data['comprobanteModel']['renglones']),
                 'usuario' => 1,
                 'nrodoc' => EstadosFacturaEnum::NRDOCB->value,
-                'en_liquid' => $data['comprobante']['en_liquid'],
+                'en_liquid' => $data['comprobanteModel']['en_liquid'],
                 'CAE' => null,
                 'CAEFchVto' => null,
                 'Resultado' => EstadosFacturaEnum::APROBADO->value,
@@ -135,7 +135,7 @@ class FacturaService
     // DETFAC
     private function cargarDetFac(array $cargarDetFac)
     {
-            Detfac::create($cargarDetFac);
+            Detfac::create($cargarDetFac);   
     }
 
     // CABFAC
@@ -145,9 +145,16 @@ class FacturaService
     }
 
 
-    public function crearFacturaA(array $data = [])
+    public function crearFacturaLotes(array $data = [])
     {
         $tcomp = TipoComprobanteEnum::FACTURA_LOT_SIST_B->value;
+        $serie = SerieEnum::FACTURA_SERIE_SISTEMA_B->value;
+        return $this->crearFactura($data, $tcomp, $serie);
+    }
+
+    public function crearFacturaConceptos(array $data = [])
+    {
+        $tcomp = TipoComprobanteEnum::FACTURA_CONC_SIST_B->value;
         $serie = SerieEnum::FACTURA_SERIE_SISTEMA_B->value;
         return $this->crearFactura($data, $tcomp, $serie);
     }

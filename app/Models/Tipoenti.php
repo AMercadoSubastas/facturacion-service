@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tipoenti extends Model
 {
-    protected $table = 'tipcomp';
+    protected $table = 'tipoenti';
 
     protected $fillable = [
         'codnum',

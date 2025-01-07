@@ -9,11 +9,14 @@ use App\Models\Paises;
 use App\Models\Localidades;
 use App\Models\Provincias;
 use App\Models\Entidades;
+use App\Models\Lotes;
+use App\Models\User;
 use App\Models\Tipoindustria;
 
 class Remates extends Model
 {
     protected $table = 'remates';
+    protected $primaryKey = 'codnum';
 
     protected $fillable = [
         'codnum',
@@ -70,4 +73,13 @@ class Remates extends Model
     {
         return $this->hasOne(Tipoindustria::class, 'codnum', 'tipoind');
     }
+    public function lotes()
+    {
+        return $this->hasMany(Lotes::class, 'codrem', 'codnum');
+    }
+    public function usuarioAsignado()
+    {
+        return $this->belongsTo(User::class, 'usuario', 'codnum');
+    }
+
 }

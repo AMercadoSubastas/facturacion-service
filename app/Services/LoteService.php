@@ -10,16 +10,26 @@ class LoteService
 {
     public function index(array $data = [])
     {
-        $per_page = $data['per_page'] ?? 1;
+        $per_page = $data['per_page'] ?? 10;
         $sort_by = $data['sort_by'] ?? 'codnum';
         $sort_order = $data['sort_order'] ?? 'desc';
+        $search = $data['search'] ?? null;
+    
         $query = Lotes::query();
-
+    
+        // Aplicar búsqueda
+        if (!empty($search)) {
+            $query->where('codnum', 'LIKE', "%$search%")
+                  ->orWhere('observ', 'LIKE', "%$search%")
+                  ->orWhere('descor', 'LIKE', "%$search%");
+        }
+    
         // Aplicar orden
         $query->orderBy($sort_by, $sort_order);
-
+    
         return $query->paginate($per_page);
     }
+    
 
     public function show(int $codrem, int $codintnum)
     {

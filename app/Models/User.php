@@ -2,14 +2,36 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\UserLarevel as Authenticatable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Traits\HasRoles;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles, HasApiTokens;
+    
+    // Especificamos que este modelo está asociado con la tabla 'usuarios'
+    protected $table = 'usuarios';
+    
+    // Desactivamos los timestamps
+    public $timestamps = false;
+
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'codnum';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = true;
 
     /**
      * The attributes that are mass assignable.
@@ -17,9 +39,13 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'usuario',
+        'nombre',
+        'clave',
+        'nivel',
         'email',
-        'password',
+        'perfil',
+        'activo',
     ];
 
     /**
@@ -28,20 +54,47 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'password',
+        'clave',
         'remember_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
-    protected function casts(): array
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
+
+    /**
+     * Set the user's password with hashing.
+     *
+     * @param string $value
+     * @return void
+     */
+    public function setPasswordAttribute($value)
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        $this->attributes['clave'] = Hash::make($value);
+    }
+
+    /**
+     * Get the password for authentication.
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->clave;
+    }
+
+    /**
+     * Relationship with UserLevel: each user belongs to a level.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function userLevel()
+    {
+        return $this->belongsTo(UserLevel::class, 'nivel', 'userlevelid');
     }
 }

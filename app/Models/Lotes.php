@@ -9,6 +9,7 @@ use App\Models\Remates;
 class Lotes extends Model
 {
     protected $table = 'lotes';
+    protected $primaryKey = 'codnum';
 
     protected $fillable = [
         'codnum',

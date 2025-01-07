@@ -2,16 +2,121 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BancoController;
-use App\Http\Controllers\EntidadController;
-use App\Http\Controllers\LoteController;
-use App\Http\Controllers\RemateController;
-use App\Http\Controllers\FacturaController;
+use App\Http\Controllers\{
+    BancoController,
+    EntidadController,
+    LoteController,
+    RemateController,
+    FacturaController,
+    ConcafactvenController,
+    ReporteController,
+    DatosController,
+    UserController,
+    AuthController,
+    RoleController,
+    PermissionController,
+    CobranzaIntegradaController
+};
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
+Route::prefix('cobranza')->group(function () {
+    Route::get('/token', [CobranzaIntegradaController::class, 'obtenerToken']);
+    Route::get('/status', [CobranzaIntegradaController::class, 'verificarConexion']);
+    Route::post('/publicar-deuda', [CobranzaIntegradaController::class, 'publicarDeuda']);
+    Route::get('/estado-deuda/{nroSeguimiento}/{nroConvenio}', [CobranzaIntegradaController::class, 'consultarEstadoDeuda']);
+    Route::get('/listar-publicaciones/{nroSeguimiento}/{nroConvenio}', [CobranzaIntegradaController::class, 'listarPublicaciones']);
+    Route::get('/pagos/{nroConvenio}/{codMoneda}/{fecha}/{nroSeguimiento}', [CobranzaIntegradaController::class, 'consultarPagos']);
+    Route::get('/deuda/qr/{nroSeguimiento}/{nroConvenio}', [CobranzaIntegradaController::class, 'consultarDeudaQR']);
+
+});
+Route::prefix('auth')->group(function () {
+    // Rutas públicas
+    Route::post('/login', [AuthController::class, 'login'])->name('api.auth.login');
+    Route::post('/register', [UserController::class, 'register']);
+    Route::post('/password/reset', [UserController::class, 'sendPasswordResetLink']);
+    Route::post('/password/reset/{token}', [UserController::class, 'resetPassword']);
+
+});
+
+
+Route::prefix('roles')->group(function () {
+    Route::get('/', [RoleController::class, 'index']);
+    Route::post('/', [RoleController::class, 'store']);
+    Route::get('/{id}', [RoleController::class, 'show']);
+    Route::put('/{id}', [RoleController::class, 'update']);
+    Route::delete('/{id}', [RoleController::class, 'destroy']);
+    Route::get('/{roleName}/permissions', [RoleController::class, 'getPermissionsByRole']);
+    Route::post('/{roleName}/permissions', [RoleController::class, 'assignPermissions']);
+});
+Route::get('/role', [RoleController::class, 'getRoles']); // Ruta adicional para roles
+
+// Rutas de permisos
+Route::prefix('permisos')->group(function () {
+    
+        Route::get('/', [PermissionController::class, 'index']);
+
+    
+
+    Route::post('/', [PermissionController::class, 'store']);
+});
+
+
+
+
+Route::middleware(['role_or_permission:admin|ver,custom_guard'])->get('/middleware-test', function () {
+    return response()->json(['message' => 'Middleware funcionando correctamente']);
+});
+
+
+Route::get('/connected-users', [AuthController::class, 'getConnectedUsers']);
+// CSRF para aplicaciones SPA
+Route::middleware('web')->get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF cookie set']);
+});
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+});
+Route::middleware(['role_or_permission:admin|ver'])->get('/test', function () {
+    return response()->json(['message' => 'Middleware funcionando']);
+});
+
+
+// Rutas de autenticación
+
+
+// Rutas de autenticación con Google
+Route::middleware(['web'])->group(function () {
+    Route::get('/auth/google', [UserController::class, 'redirectToGoogle']);
+    Route::get('/auth/google/callback', [UserController::class, 'handleGoogleCallback']);
+});
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+// Rutas de roles
+
+// Rutas de usuario
+
+});
+// Ruta de prueba para vista de factura
+Route::get('/test-factura', function () {
+    return view('factura');
+});
+
+
+
+
+
+
+
+Route::resource('users', UserController::class)->except(['create', 'edit']);
+Route::get('/userlevels', [UserController::class, 'getUserLevels']);
+
+// BancoController
 Route::controller(BancoController::class)->prefix('bancos')->group(function () {
     Route::get('/', 'index');
     Route::get('/{codnum}', 'show');
@@ -20,14 +125,18 @@ Route::controller(BancoController::class)->prefix('bancos')->group(function () {
     Route::delete('/{codnum}', 'destroy');
 });
 
+// EntidadController
 Route::controller(EntidadController::class)->prefix('entidades')->group(function () {
     Route::get('/', 'index');
-    Route::get('/{cuit}', 'show');
-    Route::post('/', 'store');
+    Route::post('/create', 'store');
     Route::put('/{codnum}', 'update');
     Route::delete('/{codnum}', 'destroy');
+    Route::get('/{codnum}', 'showByCodnum');
+    Route::post('/searchConstancia', 'searchConstancia');
+    Route::put('/{codnum}/estado', 'updateEstado');
 });
 
+// LoteController
 Route::controller(LoteController::class)->prefix('lotes')->group(function () {
     Route::get('/', 'index');
     Route::get('/{codnum}', 'show');
@@ -36,6 +145,7 @@ Route::controller(LoteController::class)->prefix('lotes')->group(function () {
     Route::delete('/{codnum}', 'destroy');
 });
 
+// RemateController
 Route::controller(RemateController::class)->prefix('remates')->group(function () {
     Route::get('/', 'index');
     Route::get('/{ncomp}', 'show');
@@ -45,6 +155,33 @@ Route::controller(RemateController::class)->prefix('remates')->group(function ()
     Route::delete('/{codnum}', 'destroy');
 });
 
+// ConcafactvenController
+Route::controller(ConcafactvenController::class)->prefix('conceptos')->group(function () {
+    Route::get('/', 'index');
+    Route::get('/impuesto/1', 'conceptosFc');
+    Route::post('/', 'store');
+    Route::put('/{codnum}', 'update');
+    Route::delete('/{codnum}', 'destroy');
+});
+
+// FacturaController
 Route::controller(FacturaController::class)->prefix('factura')->group(function () {
-    Route::post('/', 'facturar');
+    Route::post('/lotes', 'facturarLotes');
+    Route::post('/conceptos', 'facturarConceptos');
+});
+
+// DatosController
+Route::controller(DatosController::class)->prefix('datos')->group(function () {
+    Route::get('/paises', 'getPaises');
+    Route::get('/provincias', 'getProvincias');
+    Route::get('/localidades', 'getLocalidades');
+    Route::get('/tipos-entidad', 'getTiposEntidad');
+    Route::get('/tipos-iva', 'getTiposIVA');
+    Route::get('/tipos-industria', 'getTiposIndustria');
+});
+
+// ReporteController
+Route::prefix('reporte')->group(function () {
+    Route::post('/generar-factura', [ReporteController::class, 'index']);
+    Route::post('/generateFactura', [ReporteController::class, 'generateFactura']);
 });

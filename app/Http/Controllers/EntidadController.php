@@ -2,139 +2,151 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
 use App\Services\EntidadService;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\EntidadRequest;
+
 
 class EntidadController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected $entidadService;
+
+    // Inyectar EntidadService
+    public function __construct(EntidadService $entidadService)
+    {
+        $this->entidadService = $entidadService;
+    }
+
     public function index(Request $request)
     {
         try {
-            $data = $request->only([
-                'codnum',
-                'razsoc',
-                'calle',
-                'numero',
-                'pisodto',
-                'codpais',
-                'codprov',
-                'codloc',
-                'codpost',
-                'telcelu',
-                'tipoent',
-                'tipoiva',
-                'cuit',
-                'calif',
-                'fecalta',
-                'contacto',
-                'mailcont',
-                'tipoind'
-            ]);
-            $entidadService = new EntidadService();
-            $response = $entidadService->index($data);
-            return response($response, 200);
+            $search = $request->input('search', '');
+            $per_page = $request->get('per_page', 10);
+            $response = $this->entidadService->index(['search' => $search, 'per_page' => $per_page]);
+
+            return response()->json($response, 200);
         } catch (\Exception $e) {
             return response($e->getMessage(), 400);
         }
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(EntidadRequest $request)
-    {
-        try {
-            $data = $request->only([
-                'razsoc',
-                'calle',
-                'numero',
-                'pisodto',
-                'codpais',
-                'codprov',
-                'codloc',
-                'codpost',
-                'telcelu',
-                'tipoent',
-                'tipoiva',
-                'cuit',
-                'calif',
-                'fecalta',
-                'contacto',
-                'mailcont',
-                'tipoind'
+
+    public function store(Request $request)
+{
+    try {
+        $data = $request->validate([
+            'razsoc' => 'required|string|max:255',
+            'calle' => 'required|string|max:255',
+            'numero' => 'required|string|max:10',
+            'pisodto' => 'nullable|string|max:10',
+            'codpais' => 'required|integer',
+            'codprov' => 'required|integer',
+            'codloc' => 'required|integer',
+            'codpost' => 'required|string|max:10',
+            'tellinea' => 'nullable|string|max:20',
+            'telcelu' => 'nullable|string|max:20',
+            'tipoent' => 'required|integer',
+            'tipoiva' => 'required|integer',
+            'cuit' => 'required|string|max:13',
+            'calif' => 'nullable|integer',
+            'fecalta' => 'nullable|date',
+            'contacto' => 'nullable|string|max:255',
+            'mailcont' => 'nullable|email|max:255',
+            'tipoind' => 'nullable|integer',
         ]);
-            $entidadService = new EntidadService();
-            $response = $entidadService->store($data);
-            return response($response, 200);
-        } catch (\Exception $e) {
-            return response($e->getMessage(), 400);
-        }
-    }
 
-    /**
-     * Display the specified resource.
-     */
+        $response = $this->entidadService->store($data);
+        return response()->json($response, 201);
+    } catch (\Exception $e) {
+        Log::error('Error al crear la entidad: ' . $e->getMessage());
+        return response()->json(['error' => 'Error al crear la entidad.'], 400);
+    }
+}
+
     public function show(Request $request, string $cuit)
     {
         try {
-            $entidadService = new EntidadService();
-
-            $response = $entidadService->show($cuit);
+            $response = $this->entidadService->show($cuit);
             return response($response, 200);
         } catch (\Exception $e) {
             return response($e->getMessage(), 400);
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(EntidadRequest $request, int $codnum)
-    {
-        try {
-            $data = $request->only([
-                'razsoc',
-                'calle',
-                'numero',
-                'pisodto',
-                'codpais',
-                'codprov',
-                'codloc',
-                'codpost',
-                'telcelu',
-                'tipoent',
-                'tipoiva',
-                'cuit',
-                'calif',
-                'fecalta',
-                'contacto',
-                'mailcont',
-                'tipoind'
-            ]);
-            $entidadService = new EntidadService();
-            $response = $entidadService->update($data, $codnum);
-            return response($response, 200);
-        } catch (\Exception $e) {
-            return response($e->getMessage(), 400);
-        }
+    public function update(Request $request, int $codnum)
+{
+    try {
+        $data = $request->validate([
+            'razsoc' => 'required|string|max:255',
+            'calle' => 'required|string|max:255',
+            'numero' => 'required|string|max:10',
+            'pisodto' => 'nullable|string|max:10',
+            'codpais' => 'required|integer',
+            'codprov' => 'required|integer',
+            'codloc' => 'required|integer',
+            'codpost' => 'required|string|max:10',
+            'tellinea' => 'nullable|string|max:20',
+            'telcelu' => 'nullable|string|max:20',
+            'tipoent' => 'required|integer',
+            'tipoiva' => 'required|integer',
+            'calif' => 'nullable|integer',
+            'fecalta' => 'nullable|date',
+            'contacto' => 'nullable|string|max:255',
+            'mailcont' => 'nullable|email|max:255',
+            'tipoind' => 'nullable|integer',
+        ]);
+        $response = $this->entidadService->update($data, $codnum);
+        return response()->json($response, 200);
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar la entidad: ' . $e->getMessage());
+        return response()->json(['error' => 'Error al actualizar la entidad.'], 400);
     }
+}
 
-    /**
-     * Remove the specified resource from storage.
-     */
+
     public function destroy(int $codnum)
     {
         try {
-            $entidadService = new EntidadService();
-            $response = $entidadService->destroy($codnum);
+            $response = $this->entidadService->destroy($codnum);
             return response($response, 200);
         } catch (\Exception $e) {
             return response($e->getMessage(), 400);
         }
     }
+
+    public function searchConstancia(Request $request)
+    {
+        try {
+            $cuit = $request->input('cuit');
+            $response = $this->entidadService->searchConstancia($cuit);
+            return response($response, 200);
+        } catch (\Exception $e) {
+            return response($e->getMessage(), 400);
+        }
+    }
+    public function updateEstado(Request $request, int $codnum)
+    {
+        Log::info($codnum);
+
+        try {
+            $data = $request->only(['activo']);
+            $response = $this->entidadService->updateEstado($codnum, $data);
+            return response($response, 200);
+        } catch (\Exception $e) {
+            return response($e->getMessage(), 400);
+        }
+    }
+    public function showByCodnum(int $codnum)
+    {
+        try {
+            $response = $this->entidadService->showByCodnum($codnum);
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
+    }
+
 }

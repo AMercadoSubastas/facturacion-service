@@ -14,16 +14,15 @@ class RemateController extends Controller
     public function index(Request $request)
     {
         try {
-            $data = $request->only(['ncomp', 'direccion', 'observacion', 'codpais','codprov','codloc']);
-            $bancoService = new RemateService();
-            $response = $bancoService->index($data);
-            return response($response, 200);
+            $data = $request->only(['search', 'per_page', 'sort_by', 'sort_order']);
+            $remateService = new RemateService();
+            $response = $remateService->index($data);
+            return response()->json($response, 200);
         } catch (\Exception $e) {
-            return response($e->getMessage(), 400);
+            return response()->json(['error' => $e->getMessage()], 400);
         }
     }
-
-
+    
     /**
      * Store a newly created resource in storage.
      */

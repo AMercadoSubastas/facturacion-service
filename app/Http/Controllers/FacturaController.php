@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\FacturaService;
-use App\Services\AFIPService;
 
 class FacturaController extends Controller
 {
@@ -41,12 +40,25 @@ class FacturaController extends Controller
         }
     }
 
-    public function facturar(Request $request)
+    public function facturarLotes(Request $request)
     {
         try {
-            $data = $request->only('comprobante');
+            $data = $request->only('comprobanteModel');
             $facturaService = new FacturaService();
-            $result = $facturaService->crearFacturaA($data);
+            $result = $facturaService->crearFacturaLotes($data);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response($e->getMessage(), 400);
+        }
+    }
+
+    public function facturarConceptos(Request $request)
+    {
+        try {
+            $data = $request->only('comprobanteModel');
+            $facturaService = new FacturaService();
+            $result = $facturaService->crearFacturaConceptos($data);
 
             return response()->json($result);
         } catch (\Exception $e) {

@@ -14,6 +14,8 @@ use App\Models\Tipoindustria;
 class Entidades extends Model
 {
     protected $table = 'entidades';
+    protected $primaryKey = 'codnum';
+
 
     protected $fillable = [
         'codnum',

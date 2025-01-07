@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Concafact extends Model
 {
-    protected $table = 'cancafact';
+    protected $table = 'concafact';
 
     protected $fillable = [
         'codnum',

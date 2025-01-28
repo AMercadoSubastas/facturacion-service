@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Lotes;
 use Exception;
+use Illuminate\Support\Facades\Log;
 use PhpParser\NodeVisitor\FirstFindingVisitor;
 
 class LoteService
@@ -74,6 +75,36 @@ class LoteService
         return $banco->update($data);
     }
 
+    public function updateEstado(int $codnum, int $estado)
+    {
+        // Registra los valores de entrada en un array
+        Log::info('Actualizando estado del lote', [
+            'codnum' => $codnum,
+            'estado' => $estado,
+        ]);
+    
+        // Busca el lote
+        $lote = Lotes::where('codnum', $codnum)->first();
+    
+        // Registra el lote si existe
+        Log::info('Lote encontrado:', $lote ? $lote->toArray() : ['Lote no encontrado']);
+    
+        if (!$lote) {
+            throw new \Exception("El lote no existe.");
+        }
+    
+        // Actualiza el estado
+        $lote->estado = $estado;
+        $lote->save();
+    
+        Log::info('Estado del lote actualizado', [
+            'codnum' => $codnum,
+            'nuevo_estado' => $estado,
+        ]);
+    
+        return $lote;
+    }
+    
 
     public function destroy(int $codnum)
     {

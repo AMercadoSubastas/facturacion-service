@@ -30,14 +30,12 @@ Route::prefix('cobranza')->group(function () {
 
 });
 Route::prefix('auth')->group(function () {
-    // Rutas públicas
     Route::post('/login', [AuthController::class, 'login'])->name('api.auth.login');
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/password/reset', [UserController::class, 'sendPasswordResetLink']);
     Route::post('/password/reset/{token}', [UserController::class, 'resetPassword']);
 
 });
-
 
 Route::prefix('roles')->group(function () {
     Route::get('/', [RoleController::class, 'index']);
@@ -48,33 +46,23 @@ Route::prefix('roles')->group(function () {
     Route::get('/{roleName}/permissions', [RoleController::class, 'getPermissionsByRole']);
     Route::post('/{roleName}/permissions', [RoleController::class, 'assignPermissions']);
 });
-Route::get('/role', [RoleController::class, 'getRoles']); // Ruta adicional para roles
+Route::get('/role', [RoleController::class, 'getRoles']);
 
-// Rutas de permisos
 Route::prefix('permisos')->group(function () {
-    
-        Route::get('/', [PermissionController::class, 'index']);
-
-    
-
+    Route::get('/', [PermissionController::class, 'index']);
     Route::post('/', [PermissionController::class, 'store']);
 });
-
-
-
 
 Route::middleware(['role_or_permission:admin|ver,custom_guard'])->get('/middleware-test', function () {
     return response()->json(['message' => 'Middleware funcionando correctamente']);
 });
 
-
 Route::get('/connected-users', [AuthController::class, 'getConnectedUsers']);
-// CSRF para aplicaciones SPA
+
 Route::middleware('web')->get('/sanctum/csrf-cookie', function () {
     return response()->json(['message' => 'CSRF cookie set']);
 });
 Route::middleware('auth:sanctum')->group(function () {
-
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -84,39 +72,22 @@ Route::middleware(['role_or_permission:admin|ver'])->get('/test', function () {
     return response()->json(['message' => 'Middleware funcionando']);
 });
 
-
-// Rutas de autenticación
-
-
-// Rutas de autenticación con Google
 Route::middleware(['web'])->group(function () {
     Route::get('/auth/google', [UserController::class, 'redirectToGoogle']);
     Route::get('/auth/google/callback', [UserController::class, 'handleGoogleCallback']);
 });
 
-
-
 Route::middleware('auth:sanctum')->group(function () {
-// Rutas de roles
-
-// Rutas de usuario
 
 });
-// Ruta de prueba para vista de factura
+
 Route::get('/test-factura', function () {
     return view('factura');
 });
 
-
-
-
-
-
-
 Route::resource('users', UserController::class)->except(['create', 'edit']);
 Route::get('/userlevels', [UserController::class, 'getUserLevels']);
 
-// BancoController
 Route::controller(BancoController::class)->prefix('bancos')->group(function () {
     Route::get('/', 'index');
     Route::get('/{codnum}', 'show');
@@ -125,7 +96,6 @@ Route::controller(BancoController::class)->prefix('bancos')->group(function () {
     Route::delete('/{codnum}', 'destroy');
 });
 
-// EntidadController
 Route::controller(EntidadController::class)->prefix('entidades')->group(function () {
     Route::get('/', 'index');
     Route::post('/create', 'store');
@@ -136,26 +106,24 @@ Route::controller(EntidadController::class)->prefix('entidades')->group(function
     Route::put('/{codnum}/estado', 'updateEstado');
 });
 
-// LoteController
 Route::controller(LoteController::class)->prefix('lotes')->group(function () {
     Route::get('/', 'index');
     Route::get('/{codnum}', 'show');
     Route::post('/', 'store');
+    Route::put('/{codnum}/estado', 'updateEstado');
     Route::put('/{codnum}', 'update');
     Route::delete('/{codnum}', 'destroy');
 });
 
-// RemateController
 Route::controller(RemateController::class)->prefix('remates')->group(function () {
     Route::get('/', 'index');
     Route::get('/{ncomp}', 'show');
-    Route::get('/{codrem}/lotes', 'obtenerLotes');
+    Route::get('/{codnum}/lotes', 'obtenerLotes');
     Route::post('/', 'store');
     Route::put('/{codnum}', 'update');
     Route::delete('/{codnum}', 'destroy');
 });
 
-// ConcafactvenController
 Route::controller(ConcafactvenController::class)->prefix('conceptos')->group(function () {
     Route::get('/', 'index');
     Route::get('/impuesto/1', 'conceptosFc');
@@ -164,13 +132,11 @@ Route::controller(ConcafactvenController::class)->prefix('conceptos')->group(fun
     Route::delete('/{codnum}', 'destroy');
 });
 
-// FacturaController
 Route::controller(FacturaController::class)->prefix('factura')->group(function () {
     Route::post('/lotes', 'facturarLotes');
     Route::post('/conceptos', 'facturarConceptos');
 });
 
-// DatosController
 Route::controller(DatosController::class)->prefix('datos')->group(function () {
     Route::get('/paises', 'getPaises');
     Route::get('/provincias', 'getProvincias');
@@ -180,7 +146,6 @@ Route::controller(DatosController::class)->prefix('datos')->group(function () {
     Route::get('/tipos-industria', 'getTiposIndustria');
 });
 
-// ReporteController
 Route::prefix('reporte')->group(function () {
     Route::post('/generar-factura', [ReporteController::class, 'index']);
     Route::post('/generateFactura', [ReporteController::class, 'generateFactura']);

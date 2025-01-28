@@ -10,12 +10,12 @@ use App\Models\Provincias;
 use App\Models\Tipoenti;
 use App\Models\Tipoivas;
 use App\Models\Tipoindustria;
+use App\Models\Remates;
 
 class Entidades extends Model
 {
     protected $table = 'entidades';
     protected $primaryKey = 'codnum';
-
 
     protected $fillable = [
         'codnum',
@@ -74,5 +74,9 @@ class Entidades extends Model
     public function tipoind()
     {
         return $this->hasOne(Tipoindustria::class, 'codnum', 'tipoind');
+    }
+    public function remates()
+    {
+        return $this->hasMany(Remates::class, 'codcli', 'codnum');
     }
 }

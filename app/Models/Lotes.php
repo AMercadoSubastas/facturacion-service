@@ -8,6 +8,8 @@ use App\Models\Remates;
 
 class Lotes extends Model
 {
+    public $timestamps = false;
+    
     protected $table = 'lotes';
     protected $primaryKey = 'codnum';
 

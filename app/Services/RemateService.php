@@ -44,30 +44,54 @@ class RemateService
         return $result;
     }
     
-    
-    
-    
-    
-
     public function show(int $ncomp)
     {
-
-        $data = Remates::where('ncomp', $ncomp)->with('codpais','codprov','codloc','codcli','tipoind')->first();
-        if (!$data)
+        $data = Remates::where('ncomp', $ncomp)
+            ->with(['codpais', 'codprov', 'codloc', 'codcli', 'tipoind'])
+            ->first();
+    
+        if (!$data) {
             throw new \Exception("No existe la Subasta");
-        
-        return $data;
+        }
+    
+        // Obtener la lista de clientes activos
+        $clientesActivos = \App\Models\Entidades::where('activo', 1)->get();
+    
+        return [
+            'subasta' => $data,
+            'clientes' => $clientesActivos,
+        ];
     }
-
-    public function obtenerLotes(int $codrem)
+    
+    public function obtenerLotes(int $codnum, array $params = [])
     {
-
-        $data = Lotes::where('codrem', $codrem)->get();
-        if (!$data)
-            throw new \Exception("No existe el Lote");
-        
-        return $data;
+        $perPage = $params['per_page'] ?? 10;
+        $sortBy = $params['sort_by'] ?? 'codnum'; // Por defecto ordena por 'codnum'
+        $sortOrder = $params['sort_order'] ?? 'asc';
+        $search = $params['search'] ?? null;
+    
+        $query = Lotes::where('codrem', $codnum);
+    
+        // Filtrar por búsqueda
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('codnum', 'like', "%$search%")
+                  ->orWhere('codintnum', 'like', "%$search%")
+                  ->orWhere('observ', 'like', "%$search%")
+                  ->orWhere('descor', 'like', "%$search%");
+            });
+        }
+    
+        // Ordenar
+        if (in_array($sortBy, ['codnum', 'codintnum', 'estado', 'preciobase', 'fecalta'])) {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+    
+        return $query->paginate($perPage);
     }
+    
+    
+    
 
     public function store(array $data = [])
     {

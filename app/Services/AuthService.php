@@ -24,8 +24,8 @@ class AuthService
             }
     
             // Obtener roles y permisos
-            $roles = $user->getRoleNames(); // Colección de nombres de roles
-            $permissions = $user->getAllPermissions()->pluck('name'); // Colección de nombres de permisos
+            $roles = $user->getRoleNames(); 
+            $permissions = $user->getAllPermissions()->pluck('name'); 
     
             return [
                 'message' => 'Login successful',

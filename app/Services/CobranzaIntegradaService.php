@@ -18,7 +18,7 @@ class CobranzaIntegradaService
     public function __construct()
     {
         $this->httpClient = new Client([
-            'cert' => app_path('Certificados/certificado_combinado.pem'), // Certificado combinado
+            'cert' => app_path('Certificados/30718033612_11_AA_D1_FF_F1_B5_7C_7C_48_02_11_1E_B1_B2_C7_29.pem'), // Certificado combinado
             'verify' => false, // Ignora SSL en pruebas
         ]);
     }
@@ -33,7 +33,9 @@ class CobranzaIntegradaService
                 'headers' => [
                     'certificate' => '30949535947',
                     'id_channel' => 'b2b',
-                    'serial_id_cert' => '120dc6213bf9ebd3a96be07cca17c2c2',
+                    
+                    'serial_id_cert' => '11aad1fff1b57c7c4802111eb1b2c729',
+                   //'serial_id_cert' => '120dc6213bf9ebd3a96be07cca17c2c2',
                     'api-key' => '1bd541be2718b9e943b6fe84b2ce5673',
                     'Content-Type' => 'application/json',
                     'Accept' => '*/*',
@@ -73,7 +75,6 @@ class CobranzaIntegradaService
             // Obtener el token de acceso
             $accessToken = $this->obtenerToken();
 
-            // Realizar la solicitud GET para verificar el estado de conexión
             $response = $this->httpClient->get($this->statusUri, [
                 'headers' => [
                     'id_channel' => 'b2b',
@@ -84,11 +85,10 @@ class CobranzaIntegradaService
                 ],
             ]);
 
-            // Obtener el cuerpo de la respuesta
             $body = $response->getBody()->getContents();
             Log::info("Respuesta de conexión: " . $body);
 
-            return $body; // Devuelve el estado de conexión
+            return $body;
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 $statusCode = $e->getResponse()->getStatusCode();
@@ -110,7 +110,6 @@ class CobranzaIntegradaService
             // Obtener el token de acceso
             $accessToken = $this->obtenerToken();
 
-            // Enviar la solicitud POST a la URI de publicación de deuda
             $response = $this->httpClient->post($this->deudaUri, [
                 'headers' => [
                     'id_channel' => 'b2b',
@@ -147,11 +146,9 @@ class CobranzaIntegradaService
         try {
             // Obtener el token de acceso
             $accessToken = $this->obtenerToken();
-     
-             // Construir la URL de estado usando los parámetros
+
             $url = "https://cobr-cobranzascore-b2b.hgal.bancogalicia.com.ar:8443/v1/pom/cobr/orquestador-galicia/publication/status/{$nroSeguimiento}/{$nroConvenio}";
      
-            // Enviar la solicitud GET
             $response = $this->httpClient->get($url, [
                 'headers' => [
                     'id_channel' => 'b2b',
@@ -161,8 +158,7 @@ class CobranzaIntegradaService
                     'Authorization' => "Bearer {$accessToken}",
                 ],
             ]);
-     
-            // Procesar la respuesta
+
             $body = json_decode($response->getBody()->getContents(), true);
             Log::info("Respuesta consulta de estado deuda: " . json_encode($body));
      
@@ -187,10 +183,8 @@ class CobranzaIntegradaService
             // Obtener el token de acceso
             $accessToken = $this->obtenerToken();
 
-            // Construir la URL para listar las publicaciones
             $url = "https://cobr-cobranzascore-b2b.hgal.bancogalicia.com.ar:8443/v1/pom/cobr/orquestador-galicia/publication/list/{$nroSeguimiento}/{$nroConvenio}";
 
-            // Realizar la solicitud GET
             $response = $this->httpClient->get($url, [
                 'headers' => [
                     'id_channel' => 'b2b',
@@ -201,7 +195,6 @@ class CobranzaIntegradaService
                 ],
             ]);
 
-            // Procesar la respuesta
             $body = json_decode($response->getBody()->getContents(), true);
             Log::info("Respuesta listar publicaciones: " . json_encode($body));
 

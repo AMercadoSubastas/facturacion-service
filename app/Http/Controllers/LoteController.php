@@ -73,6 +73,26 @@ class LoteController extends Controller
         }
     }
 
+    public function updateEstado(Request $request, int $codnum)
+    {
+        try {
+            $request->validate([
+                'estado' => 'required|integer|in:0,1', // Validar que sea 0 o 1
+            ]);
+
+            $bancoService = new LoteService();
+            $response = $bancoService->updateEstado($codnum, $request->estado);
+            return response()->json([
+                'message' => 'Estado del lote actualizado exitosamente.',
+                'data' => $response,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      */

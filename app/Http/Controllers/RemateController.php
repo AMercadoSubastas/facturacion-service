@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Remates;
+use App\Models\Entidades;
 use App\Services\RemateService;
 use App\Http\Requests\RematesRequest;
 
@@ -37,52 +39,59 @@ class RemateController extends Controller
             return response($e->getMessage(), 400);
         }
     }
+    
+    public function show(int $ncomp)
+    {
+        $data = Remates::where('ncomp', $ncomp)
+            ->with(['codpais', 'codprov', 'codloc', 'codcli', 'tipoind'])
+            ->first();
+    
+        if (!$data) {
+            throw new \Exception("No existe la Subasta");
+        }
+    
+        $clientesActivos = Entidades::where('activo', 1)->get();
+    
+        return response()->json([
+            'subasta' => $data,
+            'clientes' => $clientesActivos,
+        ]);
+    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Request $request, int $ncomp)
+    public function obtenerLotes(Request $request, int $codnum)
     {
         try {
             $request->validate([
-                'ncomp' => 'numeric',
+                'codnum' => 'numeric',
             ]);
-            $bancoService = new RemateService();
-
-            $response = $bancoService->show($ncomp);
-            return response($response, 200);
+    
+            $params = $request->only(['per_page', 'sort_by', 'sort_order', 'search', 'page']);
+            $remateService = new RemateService();
+            $lotes = $remateService->obtenerLotes($codnum, $params);
+    
+            return response()->json($lotes, 200);
         } catch (\Exception $e) {
-            return response($e->getMessage(), 400);
+            return response()->json(['error' => $e->getMessage()], 400);
         }
     }
-
-    public function obtenerLotes(Request $request, int $codrem)
-    {
-        try {
-            $request->validate([
-                'codrem' => 'numeric',
-            ]);
-            $bancoService = new RemateService();
-
-            $response = $bancoService->obtenerLotes($codrem);
-            return response($response, 200);
-        } catch (\Exception $e) {
-            return response($e->getMessage(), 400);
-        }
-    }
-
+    
     /**
      * Update the specified resource in storage.
      */
-    public function update(RematesRequest $request, int $codnum)
+    public function update(Request $request, int $codnum)
     {
         try {
-            $data = $request->only(['ncomp', 'direccion', 'observacion', 'codpais','codprov','codloc']);
-            $bancoService = new RemateService();
-            $response = $bancoService->update($data, $codnum);
-            return response($response, 200);
+            $data = $request->all(); // Obtener todos los datos enviados
+            $remate = Remates::where('codnum', $codnum)->first();
+    
+            if (!$remate) {
+                throw new \Exception("No existe la Subasta");
+            }
+    
+            $remate->update($data); // Actualizar los campos en la base de datos
+            return response()->json(['message' => 'Subasta actualizada correctamente'], 200);
         } catch (\Exception $e) {
-            return response($e->getMessage(), 400);
+            return response()->json(['error' => $e->getMessage()], 400);
         }
     }
 

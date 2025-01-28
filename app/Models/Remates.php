@@ -18,6 +18,8 @@ class Remates extends Model
     protected $table = 'remates';
     protected $primaryKey = 'codnum';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'codnum',
         'tcomp',
